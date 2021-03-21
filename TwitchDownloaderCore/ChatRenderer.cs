@@ -41,10 +41,13 @@ namespace TwitchDownloaderCore
             string cacheFolder = Path.Combine(tempFolder, "cache");
             try
             {
-               // TODO: handle -second comments
+               
                 
                 //ChatRoot chatJson = ParseJson();
                 ChatRootYT[] chatYTJson = ParseYTJson();
+
+                // TODO: handle -second comments
+                
 
 
                 //List<TwitchComment> finalComments = new List<TwitchComment>();
@@ -94,23 +97,14 @@ namespace TwitchDownloaderCore
                     // Comment comment in chatJson.comments
                     for(int i = 0; i < chatYTJson.Length; i++)
                     {
-/*                        if (comment.source != "chat")
+                        if (chatYTJson[i].time_in_seconds < 0)
                             continue;
-                        if (comment.message.fragments == null || comment.commenter == null)
-                            continue;
-                        if (comment.message.user_notice_params != null && comment.message.user_notice_params.msg_id != null)
-                        {
-                            if (comment.message.user_notice_params.msg_id != "highlighted-message" && comment.message.user_notice_params.msg_id != "sub" && comment.message.user_notice_params.msg_id != "resub" && comment.message.user_notice_params.msg_id != "subgift" && comment.message.user_notice_params.msg_id != "")
-                                continue;
-                            if (!renderOptions.SubMessages && (comment.message.user_notice_params.msg_id == "sub" || comment.message.user_notice_params.msg_id == "resub" || comment.message.user_notice_params.msg_id == "subgift"))
-                                continue;
-                        }*/
 
                         Point drawPos = new Point(renderOptions.PaddingLeft, 0);
 
                         // TODO: pull colour
                         //SKColor userColor = SKColor.Parse(comment.message.user_color != null ? comment.message.user_color : defaultColors[Math.Abs(comment.commenter.display_name.GetHashCode()) % defaultColors.Count]);
-                        SKColor userColor = SKColor.Parse("#1E90FF");
+                        SKColor userColor = SKColor.Parse("#BABABA");
 
                         userColor = GenerateUserColor(userColor, renderOptions.BackgroundColor);
 
@@ -119,26 +113,10 @@ namespace TwitchDownloaderCore
                         int default_x = renderOptions.PaddingLeft;
                         bool accentMessage = false;
 
-/*                        List<GifEmote> currentGifEmotes = new List<GifEmote>();
+/*                      List<GifEmote> currentGifEmotes = new List<GifEmote>();
                         List<SKBitmap> emoteList = new List<SKBitmap>();
                         List<SKRect> emotePositionList = new List<SKRect>();*/
                         new SKCanvas(sectionImage).Clear(renderOptions.BackgroundColor);
-                        /*
-                                                if (comment.message.user_notice_params != null && comment.message.user_notice_params.msg_id != null && (comment.message.user_notice_params.msg_id == "sub" || comment.message.user_notice_params.msg_id == "resub" || comment.message.user_notice_params.msg_id == "subgift"))
-                                                {
-                                                    accentMessage = true;
-                                                    drawPos.X += (int)(8 * renderOptions.EmoteScale);
-                                                    default_x += (int)(8 * renderOptions.EmoteScale);
-                                                    sectionImage = DrawMessage(sectionImage, imageList, renderOptions, currentGifEmotes, messageFont, emojiCache, chatEmotes, thirdPartyEmotes, cheerEmotes, comment, canvasSize, ref drawPos, ref default_x, emoteList, emotePositionList);
-                                                }
-                                                else
-                                                {
-                                                    if (renderOptions.Timestamp)
-                                                        sectionImage = DrawTimestamp(sectionImage, imageList, messageFont, renderOptions, comment, canvasSize, ref drawPos, ref default_x);
-                                                    sectionImage = DrawBadges(sectionImage, imageList, renderOptions, chatBadges, comment, canvasSize, ref drawPos);
-                                                    sectionImage = DrawUsername(sectionImage, imageList, renderOptions, nameFont, comment.commenter.display_name, userColor, canvasSize, ref drawPos);
-                                                    sectionImage = DrawMessage(sectionImage, imageList, renderOptions, currentGifEmotes, messageFont, emojiCache, chatEmotes, thirdPartyEmotes, cheerEmotes, comment, canvasSize, ref drawPos, ref default_x, emoteList, emotePositionList);
-                                                }*/
 
                         //sectionImage = DrawBadges(sectionImage, imageList, renderOptions, chatYTJson[i].author.images[1].url ,canvasSize, ref drawPos);
                         sectionImage = DrawUsername(sectionImage, imageList, renderOptions, nameFont, chatYTJson[i].author.name, userColor, canvasSize, ref drawPos);
