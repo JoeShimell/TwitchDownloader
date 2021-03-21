@@ -9,6 +9,8 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -107,23 +109,25 @@ namespace TwitchDownloaderCore
                         List<SKBitmap> emoteList = new List<SKBitmap>();
                         List<SKRect> emotePositionList = new List<SKRect>();*/
                         new SKCanvas(sectionImage).Clear(renderOptions.BackgroundColor);
-/*
-                        if (comment.message.user_notice_params != null && comment.message.user_notice_params.msg_id != null && (comment.message.user_notice_params.msg_id == "sub" || comment.message.user_notice_params.msg_id == "resub" || comment.message.user_notice_params.msg_id == "subgift"))
-                        {
-                            accentMessage = true;
-                            drawPos.X += (int)(8 * renderOptions.EmoteScale);
-                            default_x += (int)(8 * renderOptions.EmoteScale);
-                            sectionImage = DrawMessage(sectionImage, imageList, renderOptions, currentGifEmotes, messageFont, emojiCache, chatEmotes, thirdPartyEmotes, cheerEmotes, comment, canvasSize, ref drawPos, ref default_x, emoteList, emotePositionList);
-                        }
-                        else
-                        {
-                            if (renderOptions.Timestamp)
-                                sectionImage = DrawTimestamp(sectionImage, imageList, messageFont, renderOptions, comment, canvasSize, ref drawPos, ref default_x);
-                            sectionImage = DrawBadges(sectionImage, imageList, renderOptions, chatBadges, comment, canvasSize, ref drawPos);
-                            sectionImage = DrawUsername(sectionImage, imageList, renderOptions, nameFont, comment.commenter.display_name, userColor, canvasSize, ref drawPos);
-                            sectionImage = DrawMessage(sectionImage, imageList, renderOptions, currentGifEmotes, messageFont, emojiCache, chatEmotes, thirdPartyEmotes, cheerEmotes, comment, canvasSize, ref drawPos, ref default_x, emoteList, emotePositionList);
-                        }*/
+                        /*
+                                                if (comment.message.user_notice_params != null && comment.message.user_notice_params.msg_id != null && (comment.message.user_notice_params.msg_id == "sub" || comment.message.user_notice_params.msg_id == "resub" || comment.message.user_notice_params.msg_id == "subgift"))
+                                                {
+                                                    accentMessage = true;
+                                                    drawPos.X += (int)(8 * renderOptions.EmoteScale);
+                                                    default_x += (int)(8 * renderOptions.EmoteScale);
+                                                    sectionImage = DrawMessage(sectionImage, imageList, renderOptions, currentGifEmotes, messageFont, emojiCache, chatEmotes, thirdPartyEmotes, cheerEmotes, comment, canvasSize, ref drawPos, ref default_x, emoteList, emotePositionList);
+                                                }
+                                                else
+                                                {
+                                                    if (renderOptions.Timestamp)
+                                                        sectionImage = DrawTimestamp(sectionImage, imageList, messageFont, renderOptions, comment, canvasSize, ref drawPos, ref default_x);
+                                                    sectionImage = DrawBadges(sectionImage, imageList, renderOptions, chatBadges, comment, canvasSize, ref drawPos);
+                                                    sectionImage = DrawUsername(sectionImage, imageList, renderOptions, nameFont, comment.commenter.display_name, userColor, canvasSize, ref drawPos);
+                                                    sectionImage = DrawMessage(sectionImage, imageList, renderOptions, currentGifEmotes, messageFont, emojiCache, chatEmotes, thirdPartyEmotes, cheerEmotes, comment, canvasSize, ref drawPos, ref default_x, emoteList, emotePositionList);
+                                                }*/
 
+                        sectionImage = DrawBadges(sectionImage, imageList, renderOptions, chatYTJson[i].author.images[1].url ,canvasSize, ref drawPos);
+                        sectionImage = DrawUsername(sectionImage, imageList, renderOptions, nameFont, chatYTJson[i].author.name, userColor, canvasSize, ref drawPos);
                         sectionImage = DrawYTMessage(sectionImage, imageList, renderOptions, messageFont, chatYTJson[i], canvasSize, ref drawPos, ref default_x);
 
                         int finalHeight = 0;
@@ -771,31 +775,10 @@ namespace TwitchDownloaderCore
             default_x = (int)drawPos.X;
             return sectionImage;
         }
-        public SKBitmap DrawBadges(SKBitmap sectionImage, List<SKBitmap> imageList, ChatRenderOptions renderOptions, List<ChatBadge> chatBadges, Comment comment, Size canvasSize, ref Point drawPos)
+        public SKBitmap DrawBadges(SKBitmap sectionImage, List<SKBitmap> imageList, ChatRenderOptions renderOptions, String imageURL, Size canvasSize, ref Point drawPos)
         {
-            //A little easter egg for my Twitch username won't hurt :)
-            try
-            {
-                if (comment.commenter.name == "ilovekeepo69" && chatBadges.Any(x => x.Name == "ilovekeepo69"))
-                {
-                    SKBitmap badgeImage = chatBadges.Where(x => x.Name == "ilovekeepo69").First().Versions["1"];
-                    using (SKCanvas sectionImageCanvas = new SKCanvas(sectionImage))
-                    {
-                        float imageRatio = (float)(renderOptions.EmoteScale * 0.5);
-                        float imageSize = badgeImage.Width * imageRatio;
-                        float left = (float)drawPos.X;
-                        float right = imageSize + left;
-                        float top = (float)((sectionImage.Height - imageSize) / 2);
-                        float bottom = imageSize + top;
-                        SKRect drawBox = new SKRect(left, top, right, bottom);
-                        sectionImageCanvas.DrawBitmap(badgeImage, drawBox, imagePaint);
-                        drawPos.X += (int)Math.Floor(20 * renderOptions.EmoteScale);
-                    }
-                }
-            }
-            catch { }
 
-            if (comment.message.user_badges != null)
+/*            if (comment.message.user_badges != null)
             {
                 foreach (var badge in comment.message.user_badges)
                 {
@@ -833,7 +816,35 @@ namespace TwitchDownloaderCore
                         }
                     }
                 }
+            }*/
+
+            using (SKCanvas sectionImageCanvas = new SKCanvas(sectionImage))
+            {
+                sectionImageCanvas.Clear(SKColors.Transparent);
+
+                var httpClient = new HttpClient();
+                var bytes = httpClient.GetByteArrayAsync(imageURL);
+
+                var stream = new MemoryStream(bytes.Result);
+                SKBitmap userImage = SKBitmap.Decode(stream);
+
+                //float imageRatio = (float)(renderOptions.EmoteScale * 0.5);
+                //float imageSize = userImage.Width;
+                float left = (float)drawPos.X;
+                float right = userImage.Width + left;
+                float top = (float)((sectionImage.Height - userImage.Height) / 2);
+                float bottom = userImage.Height + top;
+                SKRect drawBox = new SKRect(left, top, right, bottom);
+
+                var path = new SKPath();
+                path.AddCircle(userImage.Width / 2, userImage.Height / 2, userImage.Width / 2 - 1f);
+                sectionImageCanvas.ClipPath(path);
+
+
+                sectionImageCanvas.DrawBitmap(userImage, drawBox, imagePaint);
+                drawPos.X += userImage.Width; //(int)Math.Floor(20 * renderOptions.EmoteScale)
             }
+
             return sectionImage;
         }
         public static SKBitmap DrawUsername(SKBitmap sectionImage, List<SKBitmap> imageList, ChatRenderOptions renderOptions, SKPaint nameFont, string userName, SKColor userColor, Size canvasSize, ref Point drawPos)
@@ -856,7 +867,7 @@ namespace TwitchDownloaderCore
                     sectionImageCanvas.DrawPath(outlinePath, outlinePaint);
                 }
                 userPaint.Color = userColor;
-                sectionImageCanvas.DrawText(userName + ":", xPos, yPos, userPaint);
+                sectionImageCanvas.DrawText(userName + "  ", xPos, yPos, userPaint);
                 drawPos.X += (int)Math.Floor(textWidth) + (int)Math.Floor(6 * renderOptions.EmoteScale);
             }
             return sectionImage;
